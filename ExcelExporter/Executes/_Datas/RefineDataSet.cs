@@ -35,6 +35,11 @@ namespace ExcelExporter
                         string columnName = rawDataTable.Columns[i].ColumnName;
                         string typeValue = rawDataTable.Rows[0].ItemArray[i].ToString();
 
+                        if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
+                        {
+                            typeValue = "string";
+                        }
+
                         dataTable.Columns.Add(
                             new System.Data.DataColumn(columnName, GetType(typeValue)));
 
@@ -102,6 +107,11 @@ namespace ExcelExporter
                     {
                         string columnName = rawDataTable.Columns[i].ColumnName;
                         string typeValue = rawDataTable.Rows[0].ItemArray[i].ToString();
+
+                        if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
+                        {
+                            typeValue = "string";
+                        }
 
                         dataTable.Columns.Add(
                             new System.Data.DataColumn(columnName, GetType(typeValue)));
@@ -191,9 +201,13 @@ namespace ExcelExporter
             int columnCount = rawDataTable.Columns.Count;
             for (int i = 0; i < columnCount; ++i)
             {
+                string columnName = rawDataTable.Columns[i].ColumnName;
                 string typeValue = rawDataTable.Rows[0].ItemArray[i].ToString();
                 bool isNullable = typeValue.Contains("?");
                 string cell = rawDataTable.Rows[rowIndex].ItemArray[i].ToString();
+
+                if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
+                    return true;
 
                 if (!isNullable && cell.Length == 0)
                 {
@@ -218,11 +232,16 @@ namespace ExcelExporter
             object[] itemArray = new object[columnCount];
             for (int i = 0; i < columnCount; ++i)
             {
+                string columnName = rawDataTable.Columns[i].ColumnName;
                 string typeValue = rawDataTable.Rows[0].ItemArray[i].ToString();
                 bool isNullable = typeValue.Contains("?");
                 string cell = rawDataTable.Rows[rowIndex].ItemArray[i].ToString();
 
-                if (isNullable && cell.Length == 0)
+                if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
+                {
+                    itemArray[i] = cell;
+                }
+                else if (isNullable && cell.Length == 0)
                 {
                     itemArray[i] = GetDefaultValue(typeValue);
                 }
