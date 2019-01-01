@@ -37,11 +37,14 @@ namespace ExcelExporter
 
                         if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
                         {
-                            typeValue = "string";
+                            dataTable.Columns.Add(
+                                new System.Data.DataColumn(columnName, typeof(string)));
                         }
-
-                        dataTable.Columns.Add(
-                            new System.Data.DataColumn(columnName, GetType(typeValue)));
+                        else
+                        {
+                            dataTable.Columns.Add(
+                                new System.Data.DataColumn(columnName, GetType(typeValue)));
+                        }
 
                         if (Utils.IsRemovableServerColumn(columnName, typeValue))
                         {
@@ -110,11 +113,14 @@ namespace ExcelExporter
 
                         if (columnName.StartsWith("#") || typeValue.StartsWith("#"))
                         {
-                            typeValue = "string";
+                            dataTable.Columns.Add(
+                                new System.Data.DataColumn(columnName, typeof(string)));
                         }
-
-                        dataTable.Columns.Add(
-                            new System.Data.DataColumn(columnName, GetType(typeValue)));
+                        else
+                        {
+                            dataTable.Columns.Add(
+                                new System.Data.DataColumn(columnName, GetType(typeValue)));
+                        }
 
                         if (Utils.IsRemovableClientColumn(columnName, typeValue))
                         {

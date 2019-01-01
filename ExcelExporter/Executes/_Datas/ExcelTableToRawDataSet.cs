@@ -103,7 +103,10 @@ namespace ExcelExporter
 
             foreach (Worksheet worksheet in excelWorkbook.Worksheets)
             {
-                workSheets.Add(worksheet);
+                if (!worksheet.Name.StartsWith("#"))
+                {
+                    workSheets.Add(worksheet);
+                }
             }
 
             return workSheets;
@@ -117,7 +120,10 @@ namespace ExcelExporter
             {
                 foreach (ListObject listObject in workSheet.ListObjects)
                 {
-                    listObjects.Add(listObject);
+                    if (!listObject.Name.StartsWith("#"))
+                    {
+                        listObjects.Add(listObject);
+                    }
                 }
             }
 
