@@ -11,9 +11,30 @@ namespace ExcelExporter
     {
         protected static readonly ILog Log = LogManager.GetLogger(typeof(ExcelTableToRawDataSet));
 
-        public ExcelTableToRawDataSet(string excelPath)
+        public struct SYSTEMTIME
+        {
+            public ushort wYear;
+            public ushort wMonth;
+            public ushort wDayOfWeek;
+            public ushort wDay;
+            public ushort wHour;
+            public ushort wMinute;
+            public ushort wSecond;
+            public ushort wMilliseconds;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint SetSystemTime(ref SYSTEMTIME systemTime);
+
+        public ExcelTableToRawDataSet(string excelPath, bool isFixedDate)
         {
             ExcelPath = excelPath;
+            IsFixedDate = isFixedDate;
+
+            DateTime utcNow = DateTime.UtcNow;
+            CurrentYear = utcNow.Year;
+            CurrentMonth = utcNow.Month;
+            CurrentDay = utcNow.Day;
         }
 
         public bool Execute(ref System.Data.DataSet rawDataSet)
@@ -24,6 +45,8 @@ namespace ExcelExporter
 
             try
             {
+                SetFixedSystemTime();
+
                 if (File.Exists(ExcelPath))
                 {
                     Workbook workbook = OpenExcelWorkbook(excelApplication, ExcelPath);
@@ -69,6 +92,8 @@ namespace ExcelExporter
             }
             finally
             {
+                SetCurrentSystemTime();
+
                 foreach (Workbook workbook in workBooks)
                 {
                     workbook.Close(Type.Missing, Type.Missing, Type.Missing);
@@ -80,6 +105,12 @@ namespace ExcelExporter
             }
 
             return true;
+        }
+
+        public void Dispose()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         private Workbook OpenExcelWorkbook(Application excelApplication, string excelPath)
@@ -185,12 +216,60 @@ namespace ExcelExporter
             catch { }
         }
 
-        public void Dispose()
+        private void SetFixedSystemTime()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            if (!IsFixedDate)
+                return;
+
+            string appData = System.Environment.GetEnvironmentVariable("APPDATA");
+            string excelPath = Path.Combine(appData, "Microsoft", "Excel");
+
+            if (!Directory.Exists(excelPath))
+                return;
+
+            DateTime fixedDateTime = Directory.GetCreationTime(excelPath);
+            fixedDateTime = fixedDateTime.AddDays(1);
+            DateTime dateTime = DateTime.UtcNow;
+
+            SYSTEMTIME systemTime = new SYSTEMTIME();
+
+            systemTime.wYear = (ushort)fixedDateTime.Year;
+            systemTime.wMonth = (ushort)fixedDateTime.Month;
+            systemTime.wDay = (ushort)fixedDateTime.Day;
+            systemTime.wDayOfWeek = (ushort)dateTime.DayOfWeek;
+            systemTime.wHour = (ushort)dateTime.Hour;
+            systemTime.wMinute = (ushort)dateTime.Minute;
+            systemTime.wSecond = (ushort)dateTime.Second;
+            systemTime.wMilliseconds = (ushort)dateTime.Millisecond;
+
+            SetSystemTime(ref systemTime);
+        }
+
+        private void SetCurrentSystemTime()
+        {
+            if (!IsFixedDate)
+                return;
+
+            DateTime dateTime = DateTime.UtcNow;
+
+            SYSTEMTIME systemTime = new SYSTEMTIME();
+
+            systemTime.wYear = (ushort)CurrentYear;
+            systemTime.wMonth = (ushort)CurrentMonth;
+            systemTime.wDay = (ushort)CurrentDay;
+            systemTime.wDayOfWeek = (ushort)dateTime.DayOfWeek;
+            systemTime.wHour = (ushort)dateTime.Hour;
+            systemTime.wMinute = (ushort)dateTime.Minute;
+            systemTime.wSecond = (ushort)dateTime.Second;
+            systemTime.wMilliseconds = (ushort)dateTime.Millisecond;
+
+            SetSystemTime(ref systemTime);
         }
 
         public string ExcelPath { get; set; }
+        public bool IsFixedDate { get; set; }
+        public int CurrentYear { get; set; }
+        public int CurrentMonth { get; set; }
+        public int CurrentDay { get; set; }
     }
 }

@@ -43,6 +43,9 @@ namespace ExcelExporter
 
             [Option("client-json-path", Default = DefaultClientJsonPath, Required = false, HelpText = "Export client json path.")]
             public string ClientJsonPath { get; set; }
+
+            [Option('f', "fixed-date", Required = false, HelpText = "Fixed date.")]
+            public bool IsFixedDate { get; set; }
         }
 
         private static void ModifyOptions(ref Options options)
@@ -119,7 +122,7 @@ namespace ExcelExporter
             System.Data.DataSet rawDataSet = new System.Data.DataSet();
 
             using (ExcelTableToRawDataSet excelTableToRawDataSet =
-                new ExcelTableToRawDataSet(excelPath))
+                new ExcelTableToRawDataSet(options.ExcelPath, options.IsFixedDate))
             {
                 if (!excelTableToRawDataSet.Execute(ref rawDataSet))
                 {
