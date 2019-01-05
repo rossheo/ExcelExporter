@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.IO;
+using System.Text;
 using System;
 using log4net;
 
@@ -67,7 +68,7 @@ namespace ExcelExporter
                     string fileName = tableName + ".json";
                     string jsonFilePath = Path.Combine(JsonExportPath, fileName);
                     using (StreamWriter writer = new StreamWriter(jsonFilePath, false,
-                        System.Text.Encoding.UTF8))
+                        new UTF8Encoding(false)))
                     {
                         string exportJson = JsonConvert.SerializeObject(jExportObject,
                             Formatting.Indented);
