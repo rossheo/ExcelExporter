@@ -66,7 +66,7 @@ namespace ExcelExporter
                         }
 
                         System.Data.DataRow dataRow = dataTable.NewRow();
-                        dataRow.ItemArray = GetItemArrayFillDefaultValue(rawDataTable, i);
+                        dataRow.ItemArray = GetItemArrayFillInvalidValue(rawDataTable, i);
                         dataTable.Rows.Add(dataRow);
                     }
 
@@ -142,7 +142,7 @@ namespace ExcelExporter
                         }
 
                         System.Data.DataRow dataRow = dataTable.NewRow();
-                        dataRow.ItemArray = GetItemArrayFillDefaultValue(rawDataTable, i);
+                        dataRow.ItemArray = GetItemArrayFillInvalidValue(rawDataTable, i);
                         dataTable.Rows.Add(dataRow);
                     }
 
@@ -185,18 +185,18 @@ namespace ExcelExporter
             return typeof(string);
         }
 
-        private string GetDefaultValue(string typeValue)
+        private string GetInvalidValue(string typeValue)
         {
             typeValue = typeValue.TrimEnd('_', 'c', 's', '?');
 
             switch (typeValue)
             {
-                case "int32": return "0";
-                case "int64": return "0";
-                case "float": return "0.0";
-                case "double": return "0.0";
-                case "vector": return "(X=0,Y=0,Z=0)";
-                case "rotator": return "(P=0,Y=0,R=0)";
+                case "int32": return "-1";
+                case "int64": return "-1";
+                case "float": return "-1.0";
+                case "double": return "-1.0";
+                case "vector": return "(X=-1,Y=-1,Z=-1)";
+                case "rotator": return "(P=-1,Y=-1,R=-1)";
             }
 
             return "";
@@ -230,7 +230,7 @@ namespace ExcelExporter
             return true;
         }
 
-        private object[] GetItemArrayFillDefaultValue(
+        private object[] GetItemArrayFillInvalidValue(
             System.Data.DataTable rawDataTable, int rowIndex)
         {
             int columnCount = rawDataTable.Columns.Count;
@@ -249,7 +249,7 @@ namespace ExcelExporter
                 }
                 else if (isNullable && cell.Length == 0)
                 {
-                    itemArray[i] = GetDefaultValue(typeValue);
+                    itemArray[i] = GetInvalidValue(typeValue);
                 }
                 else
                 {

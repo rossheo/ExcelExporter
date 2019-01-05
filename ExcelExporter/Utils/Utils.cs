@@ -10,15 +10,14 @@ namespace ExcelExporter
     {
         public static string EnumPrefix { get { return "Enum_"; } }
 
-        public static string GetServerNameSpaceBegin()
-        {
-            return "namespace rh::gamedata\r\n{";
-        }
+        public static string ServerEnumFileName { get { return "game_data_enum.h"; } }
+        public static string ServerDataFileName { get { return "game_data_header.h"; } }
 
-        public static string GetServerNameSpaceEnd()
-        {
-            return "} // namespace rh::gamedata";
-        }
+        public static string ServerNamespaceBegin { get { return "namespace rh\r\n{"; } }
+        public static string ServerNamespaceEnd { get { return "} // namespace rh"; } }
+
+        public static string ServerGamedataNamespaceBegin { get { return "namespace rh::gamedata\r\n{"; } }
+        public static string ServerGamedataNamespaceEnd { get { return "} // namespace rh::gamedata"; } }
 
         public static bool IsDataTable(System.Data.DataTable rawDataTable)
         {
@@ -41,6 +40,11 @@ namespace ExcelExporter
         public static bool IsEnumType(string dataType)
         {
             return dataType.StartsWith(EnumPrefix);
+        }
+
+        public static bool IsVectorOrRotatorType(string dataType)
+        {
+            return dataType == "FVector" || dataType == "FRotator";
         }
 
         public static bool IsArrayType(string dataType, out string arrayName, out int index)

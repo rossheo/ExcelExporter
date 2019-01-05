@@ -11,7 +11,7 @@ namespace ExcelExporter
         public GenerateServerDataHeader(string dataHeaderPath)
         {
             DataHeaderPath = dataHeaderPath;
-            DataHeaderFileName = "gamedata_header.h";
+            DataHeaderFileName = Utils.ServerDataFileName;
         }
 
         public bool Execute(System.Data.DataSet rawDataSet)
@@ -28,8 +28,9 @@ namespace ExcelExporter
                     textWriter.WriteLine("// This file is auto generated. //");
                     textWriter.WriteLine("//////////////////////////////////");
                     textWriter.WriteLine("#pragma once");
+                    textWriter.WriteLine(string.Format("#include \"{0}\"", Utils.ServerEnumFileName));
                     textWriter.WriteLine();
-                    textWriter.WriteLine(Utils.GetServerNameSpaceBegin());
+                    textWriter.WriteLine(Utils.ServerGamedataNamespaceBegin);
                     textWriter.WriteLine();
                     textWriter.WriteLine("struct GameDataRow");
                     textWriter.WriteLine("{");
@@ -63,8 +64,17 @@ namespace ExcelExporter
                                     if (Utils.GetTypeColumn(rawDataTable, typeName, columnName,
                                         out Tuple<string, string> typeColumns))
                                     {
-                                        textWriter.WriteLine(string.Format("    {0} {1};",
-                                            typeColumns.Item1, typeColumns.Item2));
+                                        if (Utils.IsEnumType(typeName))
+                                        {
+                                            textWriter.WriteLine(string.Format(
+                                                "    {0} {1} = {0}::_from_integral(0);",
+                                                typeColumns.Item1, typeColumns.Item2));
+                                        }
+                                        else
+                                        {
+                                            textWriter.WriteLine(string.Format("    {0} {1};",
+                                                typeColumns.Item1, typeColumns.Item2));
+                                        }
                                     }
                                 }
                             }
@@ -118,9 +128,24 @@ namespace ExcelExporter
                                         else if (Utils.IsArrayType(columnName,
                                             out string arrayName, out int index))
                                         {
+                                            if (Utils.IsVectorOrRotatorType(typeName))
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0} = {1}[{2}].ToString();",
+                                                    tempColumnName, arrayName, index));
+                                            }
+                                            else
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0} = {1}[{2}];",
+                                                    tempColumnName, arrayName, index));
+                                            }
+                                        }
+                                        else if (Utils.IsVectorOrRotatorType(typeName))
+                                        {
                                             textWriter.WriteLine(string.Format(
-                                                "            {0} = {1}[{2}];",
-                                                tempColumnName, arrayName, index));
+                                                "            {0} = {1}.ToString();",
+                                                tempColumnName, columnName));
                                         }
                                         else
                                         {
@@ -188,9 +213,24 @@ namespace ExcelExporter
                                         else if (Utils.IsArrayType(columnName,
                                             out string arrayName, out int index))
                                         {
+                                            if (Utils.IsVectorOrRotatorType(typeName))
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0}[{1}].InitFromString({2});",
+                                                    arrayName, index, tempColumnName));
+                                            }
+                                            else
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0}[{1}] = {2};",
+                                                    arrayName, index, tempColumnName));
+                                            }
+                                        }
+                                        else if (Utils.IsVectorOrRotatorType(typeName))
+                                        {
                                             textWriter.WriteLine(string.Format(
-                                                "            {0}[{1}] = {2};",
-                                                arrayName, index, tempColumnName));
+                                                "            {0}.InitFromString({1});",
+                                                columnName, tempColumnName));
                                         }
                                         else
                                         {
@@ -218,7 +258,8 @@ namespace ExcelExporter
                             textWriter.WriteLine();
                             textWriter.WriteLine("    {");
                             textWriter.WriteLine("        cereal::JSONOutputArchive archive(strStream, cereal::JSONOutputArchive::Options::NoIndent());");
-                            textWriter.WriteLine("        rhs.serialize(archive);");
+                            textWriter.WriteLine("        auto rowData(rhs);");
+                            textWriter.WriteLine("        rowData.serialize(archive);");
                             textWriter.WriteLine("    }");
                             textWriter.WriteLine();
                             textWriter.WriteLine("    return os << FromUTF8(boost::replace_all_copy(strStream.str(), \"\\n\", \"\"));");
@@ -227,7 +268,7 @@ namespace ExcelExporter
                         }
                     }
 
-                    textWriter.WriteLine(Utils.GetServerNameSpaceEnd());
+                    textWriter.WriteLine(Utils.ServerGamedataNamespaceEnd);
                     textWriter.Close();
                 }
             }

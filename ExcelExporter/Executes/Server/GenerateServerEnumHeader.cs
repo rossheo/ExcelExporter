@@ -11,7 +11,7 @@ namespace ExcelExporter
         public GenerateServerEnumHeader(string enumHeaderPath)
         {
             EnumHeaderPath = enumHeaderPath;
-            EnumHeaderFileName = "gamedata_enum.h";
+            EnumHeaderFileName = Utils.ServerEnumFileName;
         }
 
         public bool Execute(System.Data.DataSet rawDataSet)
@@ -29,7 +29,7 @@ namespace ExcelExporter
                     textWriter.WriteLine("//////////////////////////////////");
                     textWriter.WriteLine("#pragma once");
                     textWriter.WriteLine();
-                    textWriter.WriteLine(Utils.GetServerNameSpaceBegin());
+                    textWriter.WriteLine(Utils.ServerNamespaceBegin);
                     textWriter.WriteLine();
 
                     foreach (System.Data.DataTable rawDataTable in rawDataSet.Tables)
@@ -70,7 +70,7 @@ namespace ExcelExporter
                     }
 
                     textWriter.WriteLine();
-                    textWriter.WriteLine(Utils.GetServerNameSpaceEnd());
+                    textWriter.WriteLine(Utils.ServerNamespaceEnd);
                 }
             }
             catch (Exception ex)
