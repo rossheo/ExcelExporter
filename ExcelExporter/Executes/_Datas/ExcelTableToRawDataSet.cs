@@ -57,7 +57,7 @@ namespace ExcelExporter
                 }
                 else
                 {
-                    string[] excelFilePaths = Directory.GetFiles(ExcelPath, "*.xlsx");
+                    string[] excelFilePaths = Directory.GetFiles(ExcelPath, "*.xlsm");
 
                     foreach (string excelFilePath in excelFilePaths)
                     {

@@ -19,6 +19,9 @@ namespace ExcelExporter
         public static string ServerGamedataNamespaceBegin { get { return "namespace rh::gamedata\r\n{"; } }
         public static string ServerGamedataNamespaceEnd { get { return "} // namespace rh::gamedata"; } }
 
+        public static string ClientEnumFileName { get { return "game_data_enum.h"; } }
+        public static string ClientDataFileName { get { return "game_data_header.h"; } }
+
         public static bool IsDataTable(System.Data.DataTable rawDataTable)
         {
             if (rawDataTable.TableName.StartsWith("#"))
@@ -84,6 +87,16 @@ namespace ExcelExporter
             }
 
             return trimedDataType;
+        }
+
+        public static string GetServerDefaultValue(string dataType)
+        {
+            if (IsEnumType(dataType))
+            {
+                return string.Format("{0}::_from_integral(0)", dataType);
+            }
+
+            return "{}";
         }
 
         public static string GetServerTempTypeName(string dataType)
@@ -166,7 +179,8 @@ namespace ExcelExporter
         }
 
         public static bool GetTypeColumn(System.Data.DataTable rawDataTable,
-            string typeName, string columnName, out Tuple<string, string> typeColumns)
+            string typeName, string columnName,
+            out Tuple<string, string, string> typeColumnInitialValues)
         {
             string columnKey = string.Empty;
             string columnValue = string.Empty;
@@ -176,7 +190,8 @@ namespace ExcelExporter
                 Match m = regex.Match(columnName);
                 if (!m.Success)
                 {
-                    typeColumns = new Tuple<string, string>(typeName, columnName);
+                    typeColumnInitialValues =
+                        new Tuple<string, string, string>(typeName, columnName, string.Empty);
                     return true;
                 }
 
@@ -188,7 +203,8 @@ namespace ExcelExporter
                 {
                     Trace.Assert(columnValueToInt != 0);
 
-                    typeColumns = new Tuple<string, string>(string.Empty, string.Empty);
+                    typeColumnInitialValues =
+                        new Tuple<string, string, string>(string.Empty, string.Empty, string.Empty);
                     return false;
                 }
             }
@@ -216,14 +232,29 @@ namespace ExcelExporter
             List<string> columnValues = new List<string>();
             if (!multiMapList.TryGetValue(columnKey, out columnValues))
             {
-                typeColumns = new Tuple<string, string>(string.Empty, string.Empty);
+                typeColumnInitialValues =
+                    new Tuple<string, string, string>(string.Empty, string.Empty, string.Empty);
                 return false;
             }
 
             int columnKeyCount = columnValues.Count;
             string arrayTypeName = string.Format("std::array<{0}, {1}>", typeName, columnKeyCount);
 
-            typeColumns = new Tuple<string, string>(arrayTypeName, columnKey + "s");
+            string initialValues = string.Empty;
+            for (int i = 0; i < columnKeyCount; ++i)
+            {
+                if (initialValues.Length != 0)
+                {
+                    initialValues += ", ";
+                }
+
+                initialValues += string.Format("{{{0}}}", GetServerDefaultValue(typeName));
+            }
+
+            initialValues = string.Format("{{ {{{0}}} }}", initialValues);
+
+            typeColumnInitialValues =
+                new Tuple<string, string, string>(arrayTypeName, columnKey + "s", initialValues);
             return true;
         }
     }

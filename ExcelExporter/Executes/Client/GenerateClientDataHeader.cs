@@ -11,7 +11,7 @@ namespace ExcelExporter
         public GenerateClientDataHeader(string dataHeaderPath)
         {
             DataHeaderPath = dataHeaderPath;
-            DataHeaderFileName = "gamedata_header.h";
+            DataHeaderFileName = Utils.ClientDataFileName;
         }
 
         public bool Execute(System.Data.DataSet rawDataSet)

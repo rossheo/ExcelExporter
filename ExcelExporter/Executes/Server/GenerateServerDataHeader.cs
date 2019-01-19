@@ -62,18 +62,20 @@ namespace ExcelExporter
                                     string typeName = Utils.GetServerTypeName(typeValue);
 
                                     if (Utils.GetTypeColumn(rawDataTable, typeName, columnName,
-                                        out Tuple<string, string> typeColumns))
+                                        out Tuple<string, string, string> typeColumnInitialValues))
                                     {
-                                        if (Utils.IsEnumType(typeName))
+                                        if (typeColumnInitialValues.Item3.Length == 0)
                                         {
-                                            textWriter.WriteLine(string.Format(
-                                                "    {0} {1} = {0}::_from_integral(0);",
-                                                typeColumns.Item1, typeColumns.Item2));
+                                            textWriter.WriteLine(string.Format("    {0} {1};",
+                                                typeColumnInitialValues.Item1,
+                                                typeColumnInitialValues.Item2));
                                         }
                                         else
                                         {
-                                            textWriter.WriteLine(string.Format("    {0} {1};",
-                                                typeColumns.Item1, typeColumns.Item2));
+                                            textWriter.WriteLine(string.Format("    {0} {1} = {2};",
+                                                typeColumnInitialValues.Item1,
+                                                typeColumnInitialValues.Item2,
+                                                typeColumnInitialValues.Item3));
                                         }
                                     }
                                 }
@@ -119,16 +121,16 @@ namespace ExcelExporter
                                         string typeName = Utils.GetServerTypeName(typeValue);
                                         string tempColumnName = "temp_" + columnName;
 
-                                        if (Utils.IsEnumType(typeName))
-                                        {
-                                            textWriter.WriteLine(string.Format(
-                                                "            {0} = {1}._to_string();",
-                                                tempColumnName, columnName));
-                                        }
-                                        else if (Utils.IsArrayType(columnName,
+                                        if (Utils.IsArrayType(columnName,
                                             out string arrayName, out int index))
                                         {
-                                            if (Utils.IsVectorOrRotatorType(typeName))
+                                            if (Utils.IsEnumType(typeName))
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0} = {1}[{2}]._to_string();",
+                                                    tempColumnName, arrayName, index));
+                                            }
+                                            else if (Utils.IsVectorOrRotatorType(typeName))
                                             {
                                                 textWriter.WriteLine(string.Format(
                                                     "            {0} = {1}[{2}].ToString();",
@@ -140,6 +142,12 @@ namespace ExcelExporter
                                                     "            {0} = {1}[{2}];",
                                                     tempColumnName, arrayName, index));
                                             }
+                                        }
+                                        else if (Utils.IsEnumType(typeName))
+                                        {
+                                            textWriter.WriteLine(string.Format(
+                                                "            {0} = {1}._to_string();",
+                                                tempColumnName, columnName));
                                         }
                                         else if (Utils.IsVectorOrRotatorType(typeName))
                                         {
@@ -204,16 +212,16 @@ namespace ExcelExporter
                                         string typeName = Utils.GetServerTypeName(typeValue);
                                         string tempColumnName = "temp_" + columnName;
 
-                                        if (Utils.IsEnumType(typeName))
-                                        {
-                                            textWriter.WriteLine(string.Format(
-                                                "            {0} = {1}::_from_string({2}.c_str());",
-                                                columnName, typeName, tempColumnName));
-                                        }
-                                        else if (Utils.IsArrayType(columnName,
+                                        if (Utils.IsArrayType(columnName,
                                             out string arrayName, out int index))
                                         {
-                                            if (Utils.IsVectorOrRotatorType(typeName))
+                                            if (Utils.IsEnumType(typeName))
+                                            {
+                                                textWriter.WriteLine(string.Format(
+                                                    "            {0}[{1}] = {2}::_from_string({3}.c_str());",
+                                                    arrayName, index, typeName, tempColumnName));
+                                            }
+                                            else if (Utils.IsVectorOrRotatorType(typeName))
                                             {
                                                 textWriter.WriteLine(string.Format(
                                                     "            {0}[{1}].InitFromString({2});",
@@ -225,6 +233,12 @@ namespace ExcelExporter
                                                     "            {0}[{1}] = {2};",
                                                     arrayName, index, tempColumnName));
                                             }
+                                        }
+                                        else if (Utils.IsEnumType(typeName))
+                                        {
+                                            textWriter.WriteLine(string.Format(
+                                                "            {0} = {1}::_from_string({2}.c_str());",
+                                                columnName, typeName, tempColumnName));
                                         }
                                         else if (Utils.IsVectorOrRotatorType(typeName))
                                         {

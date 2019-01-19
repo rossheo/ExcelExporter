@@ -11,7 +11,7 @@ namespace ExcelExporter
         public GenerateClientEnumHeader(string enumHeaderPath)
         {
             EnumHeaderPath = enumHeaderPath;
-            EnumHeaderFileName = "gamedata_enum.h";
+            EnumHeaderFileName = Utils.ClientEnumFileName;
         }
 
         public bool Execute(System.Data.DataSet rawDataSet)
