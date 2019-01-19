@@ -47,7 +47,17 @@ namespace ExcelExporter
 
         public static bool IsVectorOrRotatorType(string dataType)
         {
-            return dataType == "FVector" || dataType == "FRotator";
+            return IsVectorType(dataType) || IsRotatorType(dataType);
+        }
+
+        public static bool IsVectorType(string dataType)
+        {
+            return dataType == "FVector";
+        }
+
+        public static bool IsRotatorType(string dataType)
+        {
+            return dataType == "FRotator";
         }
 
         public static bool IsArrayType(string dataType, out string arrayName, out int index)
@@ -89,14 +99,16 @@ namespace ExcelExporter
             return trimedDataType;
         }
 
-        public static string GetServerDefaultValue(string dataType)
+        public static string GetServerDefaultInitializeValue(string dataType)
         {
             if (IsEnumType(dataType))
             {
                 return string.Format("{0}::_from_integral(0)", dataType);
             }
 
-            return "{}";
+            string trimedDataType = dataType.TrimEnd('_', 'c', 's', '?');
+            string typeName = GetServerTypeName(trimedDataType);
+            return string.Format("{0}()", typeName);
         }
 
         public static string GetServerTempTypeName(string dataType)
@@ -190,8 +202,10 @@ namespace ExcelExporter
                 Match m = regex.Match(columnName);
                 if (!m.Success)
                 {
+                    string initialValue = GetServerDefaultInitializeValue(typeName);
                     typeColumnInitialValues =
-                        new Tuple<string, string, string>(typeName, columnName, string.Empty);
+                        new Tuple<string, string, string>(typeName, columnName, initialValue);
+
                     return true;
                 }
 
@@ -248,7 +262,7 @@ namespace ExcelExporter
                     initialValues += ", ";
                 }
 
-                initialValues += string.Format("{{{0}}}", GetServerDefaultValue(typeName));
+                initialValues += string.Format("{{{0}}}", GetServerDefaultInitializeValue(typeName));
             }
 
             initialValues = string.Format("{{ {{{0}}} }}", initialValues);
